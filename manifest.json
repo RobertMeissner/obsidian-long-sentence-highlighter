@@ -2,9 +2,9 @@
 	"id": "long-sentence-highlighter",
 	"name": "Long Sentence Highlighter",
 	"version": "1.0.0",
-	"minAppVersion": "1.8.10",
+	"minAppVersion": "0.15.0",
 	"description": "Highlights sentences that exceed a configurable word count threshold to help improve writing clarity and readability.",
-	"author": "Robert Meißner; OpenCode",
-	"authorUrl": "https://github.com/RobertMeissner/",
+	"author": "Robert Meißner",
+	"authorUrl": "https://github.com/RobertMeissner/obsidian-long-sentence-highlighter",
 	"isDesktopOnly": false
 }

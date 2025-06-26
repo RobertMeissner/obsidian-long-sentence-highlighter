@@ -25,7 +25,7 @@ Mainly used by me, to keep sentences short in my novel.
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/your-username/obsidian-long-sentence-highlighter/releases)
+1. Download the latest release from the [releases page](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/releases)
 2. Extract the files to your vault's `.obsidian/plugins/long-sentence-highlighter/` directory
 3. Reload Obsidian and enable the plugin in Settings > Community Plugins
 
