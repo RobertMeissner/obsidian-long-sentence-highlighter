@@ -51,6 +51,7 @@ const underlineMark = Decoration.mark({
 
 export default class LongSentenceHighlighterPlugin extends Plugin {
 	settings: LongSentenceHighlighterSettings;
+	themeObserver: MutationObserver;
 
 	async onload() {
 		await this.loadSettings();
@@ -114,6 +115,21 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			})
 		);
 
+		// Listen for theme changes to update colors
+		this.registerEvent(
+			this.app.workspace.on('css-change', () => {
+				if (this.settings.enabled) {
+					setTimeout(() => {
+						this.applyCustomCSS();
+						this.highlightLongSentences();
+					}, 100);
+				}
+			})
+		);
+
+		// Set up theme change observer
+		this.setupThemeObserver();
+
 		if (this.settings.enabled) {
 			setTimeout(() => this.highlightLongSentences(), 1000);
 		}
@@ -128,9 +144,35 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			if (existingStyle) {
 				existingStyle.remove();
 			}
+
+			// Disconnect theme observer
+			if (this.themeObserver) {
+				this.themeObserver.disconnect();
+			}
 		} catch (error) {
 			console.error('Long Sentence Highlighter: Error during unload:', error);
 		}
+	}
+
+	setupThemeObserver() {
+		// Observe changes to the body class list to detect theme changes
+		this.themeObserver = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+					if (this.settings.enabled) {
+						setTimeout(() => {
+							this.applyCustomCSS();
+							this.highlightLongSentences();
+						}, 50);
+					}
+				}
+			});
+		});
+
+		this.themeObserver.observe(document.body, {
+			attributes: true,
+			attributeFilter: ['class']
+		});
 	}
 
 	async highlightView(view: MarkdownView) {
@@ -223,17 +265,58 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 			const style = document.createElement('style');
 			style.id = 'long-sentence-highlighter-styles';
+
+			// Detect if we're in dark mode
+			const isDarkMode = document.body.classList.contains('theme-dark');
+
+			// Adjust colors for dark mode
+			let backgroundHighlightColor = this.settings.highlightColor;
+			let underlineColor = this.settings.highlightColor;
+
+			if (isDarkMode) {
+				// Convert hex color to rgba with reduced opacity for dark mode
+				const hexToRgba = (hex: string, alpha: number) => {
+					const r = parseInt(hex.slice(1, 3), 16);
+					const g = parseInt(hex.slice(3, 5), 16);
+					const b = parseInt(hex.slice(5, 7), 16);
+					return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+				};
+
+				// Use lower opacity for background in dark mode
+				if (this.settings.highlightColor.startsWith('#')) {
+					backgroundHighlightColor = hexToRgba(this.settings.highlightColor, 0.3);
+				} else {
+					// If it's already rgba or other format, use as is
+					backgroundHighlightColor = this.settings.highlightColor;
+				}
+			}
+
 			style.textContent = `
 				.cm-line .long-sentence-highlight {
-					background-color: ${this.settings.highlightColor};
+					background-color: ${backgroundHighlightColor};
 					border-radius: 2px;
 					padding: 1px 0;
+					transition: background-color 0.2s ease;
 				}
 				.cm-line .long-sentence-underline {
 					text-decoration: underline;
-					text-decoration-color: ${this.settings.highlightColor};
+					text-decoration-color: ${underlineColor};
 					text-decoration-thickness: 2px;
 					text-underline-offset: 2px;
+					transition: text-decoration-color 0.2s ease;
+				}
+				.theme-dark .cm-line .long-sentence-highlight {
+					background-color: ${backgroundHighlightColor};
+					border-radius: 2px;
+					padding: 1px 0;
+					transition: background-color 0.2s ease;
+				}
+				.theme-dark .cm-line .long-sentence-underline {
+					text-decoration: underline;
+					text-decoration-color: ${underlineColor};
+					text-decoration-thickness: 2px;
+					text-underline-offset: 2px;
+					transition: text-decoration-color 0.2s ease;
 				}
 			`;
 			document.head.appendChild(style);
