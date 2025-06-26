@@ -1,11 +1,43 @@
-.long-sentence-highlight {
+/* Long Sentence Highlighter Plugin Styles */
+
+/* Background highlighting style */
+.cm-line .long-sentence-highlight {
 	background-color: var(--long-sentence-highlight-color, #ffeb3b);
-	padding: 2px 4px;
-	border-radius: 3px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	border-radius: 2px;
+	padding: 1px 0;
 	transition: background-color 0.2s ease;
 }
 
-.long-sentence-highlight:hover {
-	background-color: var(--long-sentence-highlight-hover-color, #ffc107);
+.cm-line .long-sentence-highlight:hover {
+	background-color: var(--long-sentence-highlight-hover-color, rgba(255, 235, 59, 0.8));
+}
+
+/* Underline highlighting style */
+.cm-line .long-sentence-underline {
+	text-decoration: underline;
+	text-decoration-color: var(--long-sentence-underline-color, #ffeb3b);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 2px;
+	transition: text-decoration-color 0.2s ease;
+}
+
+.cm-line .long-sentence-underline:hover {
+	text-decoration-color: var(--long-sentence-underline-hover-color, #ffc107);
+}
+
+/* Dark theme adjustments */
+.theme-dark .cm-line .long-sentence-highlight {
+	background-color: var(--long-sentence-highlight-color-dark, rgba(255, 235, 59, 0.3));
+}
+
+.theme-dark .cm-line .long-sentence-highlight:hover {
+	background-color: var(--long-sentence-highlight-hover-color-dark, rgba(255, 235, 59, 0.4));
+}
+
+.theme-dark .cm-line .long-sentence-underline {
+	text-decoration-color: var(--long-sentence-underline-color-dark, #ffeb3b);
+}
+
+.theme-dark .cm-line .long-sentence-underline:hover {
+	text-decoration-color: var(--long-sentence-underline-hover-color-dark, #ffc107);
 }
