@@ -1,8 +1,11 @@
-/*
+.long-sentence-highlight {
+	background-color: var(--long-sentence-highlight-color, #ffeb3b);
+	padding: 2px 4px;
+	border-radius: 3px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	transition: background-color 0.2s ease;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+.long-sentence-highlight:hover {
+	background-color: var(--long-sentence-highlight-hover-color, #ffc107);
+}

@@ -1,85 +1,187 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, MarkdownView, Plugin, PluginSettingTab, Setting, Notice } from 'obsidian';
+import { EditorView } from '@codemirror/view';
+import { StateEffect, StateField } from '@codemirror/state';
+import { Decoration, DecorationSet } from '@codemirror/view';
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
-	mySetting: string;
+interface LongSentenceHighlighterSettings {
+	maxWords: number;
+	highlightColor: string;
+	enabled: boolean;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: LongSentenceHighlighterSettings = {
+	maxWords: 20,
+	highlightColor: '#ffeb3b',
+	enabled: true
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+const addHighlightEffect = StateEffect.define<{from: number, to: number}>();
+const clearHighlightsEffect = StateEffect.define();
+
+const highlightField = StateField.define<DecorationSet>({
+	create() {
+		return Decoration.none;
+	},
+	update(highlights, tr) {
+		highlights = highlights.map(tr.changes);
+		for (let e of tr.effects) {
+			if (e.is(addHighlightEffect)) {
+				highlights = highlights.update({
+					add: [highlightMark.range(e.value.from, e.value.to)]
+				});
+			} else if (e.is(clearHighlightsEffect)) {
+				highlights = Decoration.none;
+			}
+		}
+		return highlights;
+	},
+	provide: f => EditorView.decorations.from(f)
+});
+
+const highlightMark = Decoration.mark({
+	class: "long-sentence-highlight"
+});
+
+export default class LongSentenceHighlighterPlugin extends Plugin {
+	settings: LongSentenceHighlighterSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		this.registerEditorExtension(highlightField);
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
+			id: 'toggle-long-sentence-highlighting',
+			name: 'Toggle long sentence highlighting',
 			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
+				this.settings.enabled = !this.settings.enabled;
+				this.saveSettings();
+				if (this.settings.enabled) {
+					this.highlightLongSentences();
+					new Notice('Long sentence highlighting enabled');
+				} else {
+					this.clearHighlights();
+					new Notice('Long sentence highlighting disabled');
 				}
 			}
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
+		this.addCommand({
+			id: 'highlight-long-sentences',
+			name: 'Highlight long sentences in current note',
+			callback: () => {
+				this.highlightLongSentences();
+			}
 		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.addCommand({
+			id: 'clear-sentence-highlights',
+			name: 'Clear sentence highlights',
+			callback: () => {
+				this.clearHighlights();
+			}
+		});
+
+		this.addSettingTab(new LongSentenceHighlighterSettingTab(this.app, this));
+
+		this.registerEvent(
+			this.app.workspace.on('active-leaf-change', () => {
+				if (this.settings.enabled) {
+					setTimeout(() => this.highlightLongSentences(), 500);
+				}
+			})
+		);
+
+		if (this.settings.enabled) {
+			setTimeout(() => this.highlightLongSentences(), 1000);
+		}
 	}
 
 	onunload() {
+		this.clearHighlights();
+	}
 
+	async highlightView(view: MarkdownView) {
+		const cm6Editor: EditorView = (view.editor as any).cm as EditorView;
+
+		if (!cm6Editor) {
+			new Notice('Failed to access the CodeMirror editor.');
+			console.log('Failed to access the CodeMirror editor.');
+			return;
+		}
+
+		this.applyCustomCSS();
+		this.highlightLongSentences(cm6Editor);
+	}
+
+	highlightLongSentences(cm6Editor?: EditorView) {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView) {
+			console.log('Long Sentence Highlighter: No active markdown view');
+			return;
+		}
+
+		if (!cm6Editor) {
+			cm6Editor = (activeView.editor as any).cm as EditorView;
+		}
+
+		if (!cm6Editor) {
+			console.log('Long Sentence Highlighter: Could not access CodeMirror editor');
+			return;
+		}
+
+		this.applyCustomCSS();
+
+		const content = cm6Editor.state.doc.toString();
+		const sentences = this.getLongSentences(content);
+
+		const effects: StateEffect<any>[] = [clearHighlightsEffect.of(null)];
+
+		let startIndex = 0;
+		for (const sentence of sentences) {
+			startIndex = content.indexOf(sentence, startIndex);
+			if (startIndex !== -1) {
+				const from = startIndex;
+				const to = from + sentence.length;
+				effects.push(addHighlightEffect.of({from, to}));
+				startIndex = to;
+			} else {
+				console.log(`Could not find sentence: ${sentence}`);
+			}
+		}
+
+		if (effects.length > 1) {
+			cm6Editor.dispatch({effects});
+		}
+	}
+
+	getLongSentences(content: string): string[] {
+		const sentenceDelimiterRegex = /(?<=[.!?])\s+|(?=\n\n)|(?=\n\s*\n)|(?<!\n)\n(?!\n)/;
+		const sentences = content.split(sentenceDelimiterRegex);
+
+		return sentences.filter((sentence) => sentence.split(/\s+/).length > this.settings.maxWords);
+	}
+
+	applyCustomCSS() {
+		const style = document.createElement('style');
+		style.textContent = `
+			.cm-line .long-sentence-highlight {
+				background-color: ${this.settings.highlightColor};
+			}
+		`;
+		document.head.append(style);
+	}
+
+	clearHighlights() {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView) return;
+
+		const cm6Editor: EditorView = (activeView.editor as any).cm as EditorView;
+		if (!cm6Editor) return;
+
+		cm6Editor.dispatch({
+			effects: [clearHighlightsEffect.of(null)]
+		});
 	}
 
 	async loadSettings() {
@@ -91,26 +193,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class LongSentenceHighlighterSettingTab extends PluginSettingTab {
+	plugin: LongSentenceHighlighterPlugin;
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: LongSentenceHighlighterPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -121,14 +207,48 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('Word threshold')
+			.setDesc('Highlight sentences with this many words or more')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder('20')
+				.setValue(this.plugin.settings.maxWords.toString())
 				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+					const threshold = parseInt(value);
+					if (!isNaN(threshold) && threshold > 0) {
+						this.plugin.settings.maxWords = threshold;
+						await this.plugin.saveSettings();
+						if (this.plugin.settings.enabled) {
+							this.plugin.highlightLongSentences();
+						}
+					}
+				}));
+
+		new Setting(containerEl)
+			.setName('Highlight color')
+			.setDesc('Color used to highlight long sentences')
+			.addColorPicker(colorPicker => colorPicker
+				.setValue(this.plugin.settings.highlightColor)
+				.onChange(async (value) => {
+					this.plugin.settings.highlightColor = value;
 					await this.plugin.saveSettings();
+					if (this.plugin.settings.enabled) {
+						this.plugin.highlightLongSentences();
+					}
+				}));
+
+		new Setting(containerEl)
+			.setName('Enable highlighting')
+			.setDesc('Automatically highlight long sentences')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enabled)
+				.onChange(async (value) => {
+					this.plugin.settings.enabled = value;
+					await this.plugin.saveSettings();
+					if (value) {
+						this.plugin.highlightLongSentences();
+					} else {
+						this.plugin.clearHighlights();
+					}
 				}));
 	}
 }

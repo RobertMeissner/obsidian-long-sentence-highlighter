@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "long-sentence-highlighter",
+	"name": "Long Sentence Highlighter",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Highlights sentences that exceed a configurable word count threshold to help improve writing clarity.",
+	"author": "OpenCode",
+	"authorUrl": "",
 	"isDesktopOnly": false
 }
