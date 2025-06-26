@@ -61,14 +61,19 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			id: 'toggle-long-sentence-highlighting',
 			name: 'Toggle long sentence highlighting',
 			callback: () => {
-				this.settings.enabled = !this.settings.enabled;
-				this.saveSettings();
-				if (this.settings.enabled) {
-					this.highlightLongSentences();
-					new Notice('Long sentence highlighting enabled');
-				} else {
-					this.clearHighlights();
-					new Notice('Long sentence highlighting disabled');
+				try {
+					this.settings.enabled = !this.settings.enabled;
+					this.saveSettings();
+					if (this.settings.enabled) {
+						this.highlightLongSentences();
+						new Notice('Long sentence highlighting enabled');
+					} else {
+						this.clearHighlights();
+						new Notice('Long sentence highlighting disabled');
+					}
+				} catch (error) {
+					console.error('Long Sentence Highlighter: Error toggling highlighting:', error);
+					new Notice('Error toggling highlighting');
 				}
 			}
 		});
@@ -77,7 +82,12 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			id: 'highlight-long-sentences',
 			name: 'Highlight long sentences in current note',
 			callback: () => {
-				this.highlightLongSentences();
+				try {
+					this.highlightLongSentences();
+				} catch (error) {
+					console.error('Long Sentence Highlighter: Error highlighting sentences:', error);
+					new Notice('Error highlighting sentences');
+				}
 			}
 		});
 
@@ -85,7 +95,12 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			id: 'clear-sentence-highlights',
 			name: 'Clear sentence highlights',
 			callback: () => {
-				this.clearHighlights();
+				try {
+					this.clearHighlights();
+				} catch (error) {
+					console.error('Long Sentence Highlighter: Error clearing highlights:', error);
+					new Notice('Error clearing highlights');
+				}
 			}
 		});
 
@@ -105,104 +120,159 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 	}
 
 	onunload() {
-		this.clearHighlights();
+		try {
+			this.clearHighlights();
+			
+			// Remove custom CSS
+			const existingStyle = document.getElementById('long-sentence-highlighter-styles');
+			if (existingStyle) {
+				existingStyle.remove();
+			}
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error during unload:', error);
+		}
 	}
 
 	async highlightView(view: MarkdownView) {
-		const cm6Editor: EditorView = (view.editor as any).cm as EditorView;
+		try {
+			const cm6Editor: EditorView = (view.editor as any).cm as EditorView;
 
-		if (!cm6Editor) {
-			new Notice('Failed to access the CodeMirror editor.');
-			console.log('Failed to access the CodeMirror editor.');
-			return;
+			if (!cm6Editor) {
+				console.warn('Long Sentence Highlighter: Failed to access CodeMirror editor');
+				return;
+			}
+
+			this.applyCustomCSS();
+			this.highlightLongSentences(cm6Editor);
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error in highlightView:', error);
 		}
-
-		this.applyCustomCSS();
-		this.highlightLongSentences(cm6Editor);
 	}
 
 	highlightLongSentences(cm6Editor?: EditorView) {
-		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeView) {
-			console.log('Long Sentence Highlighter: No active markdown view');
-			return;
-		}
-
-		if (!cm6Editor) {
-			cm6Editor = (activeView.editor as any).cm as EditorView;
-		}
-
-		if (!cm6Editor) {
-			console.log('Long Sentence Highlighter: Could not access CodeMirror editor');
-			return;
-		}
-
-		this.applyCustomCSS();
-
-		const content = cm6Editor.state.doc.toString();
-		const sentences = this.getLongSentences(content);
-
-		const effects: StateEffect<any>[] = [clearHighlightsEffect.of(null)];
-
-		let startIndex = 0;
-		for (const sentence of sentences) {
-			startIndex = content.indexOf(sentence, startIndex);
-			if (startIndex !== -1) {
-				const from = startIndex;
-				const to = from + sentence.length;
-				effects.push(addHighlightEffect.of({from, to, style: this.settings.highlightStyle}));
-				startIndex = to;
-			} else {
-				console.log(`Could not find sentence: ${sentence}`);
+		try {
+			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (!activeView) {
+				return;
 			}
-		}
 
-		if (effects.length > 1) {
-			cm6Editor.dispatch({effects});
+			if (!cm6Editor) {
+				cm6Editor = (activeView.editor as any).cm as EditorView;
+			}
+
+			if (!cm6Editor) {
+				console.warn('Long Sentence Highlighter: Could not access CodeMirror editor');
+				return;
+			}
+
+			this.applyCustomCSS();
+
+			const content = cm6Editor.state.doc.toString();
+			const sentences = this.getLongSentences(content);
+
+			const effects: StateEffect<any>[] = [clearHighlightsEffect.of(null)];
+
+			let startIndex = 0;
+			for (const sentence of sentences) {
+				startIndex = content.indexOf(sentence, startIndex);
+				if (startIndex !== -1) {
+					const from = startIndex;
+					const to = from + sentence.length;
+					effects.push(addHighlightEffect.of({from, to, style: this.settings.highlightStyle}));
+					startIndex = to;
+				}
+			}
+
+			if (effects.length > 1) {
+				cm6Editor.dispatch({effects});
+			}
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error in highlightLongSentences:', error);
 		}
 	}
 
 	getLongSentences(content: string): string[] {
-		const sentenceDelimiterRegex = /(?<=[.!?])\s+|(?=\n\n)|(?=\n\s*\n)|(?<!\n)\n(?!\n)/;
-		const sentences = content.split(sentenceDelimiterRegex);
+		try {
+			if (!content || content.trim().length === 0) {
+				return [];
+			}
 
-		return sentences.filter((sentence) => sentence.split(/\s+/).length > this.settings.maxWords);
+			const sentenceDelimiterRegex = /(?<=[.!?])\s+|(?=\n\n)|(?=\n\s*\n)|(?<!\n)\n(?!\n)/;
+			const sentences = content.split(sentenceDelimiterRegex);
+
+			return sentences.filter((sentence) => {
+				const trimmed = sentence.trim();
+				if (trimmed.length === 0) return false;
+				
+				const wordCount = trimmed.split(/\s+/).filter(word => word.length > 0).length;
+				return wordCount > this.settings.maxWords;
+			});
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error in getLongSentences:', error);
+			return [];
+		}
 	}
 
 	applyCustomCSS() {
-		const style = document.createElement('style');
-		style.textContent = `
-			.cm-line .long-sentence-highlight {
-				background-color: ${this.settings.highlightColor};
+		try {
+			// Remove existing style if it exists
+			const existingStyle = document.getElementById('long-sentence-highlighter-styles');
+			if (existingStyle) {
+				existingStyle.remove();
 			}
-			.cm-line .long-sentence-underline {
-				text-decoration: underline;
-				text-decoration-color: ${this.settings.highlightColor};
-				text-decoration-thickness: 2px;
-				text-underline-offset: 2px;
-			}
-		`;
-		document.head.append(style);
+
+			const style = document.createElement('style');
+			style.id = 'long-sentence-highlighter-styles';
+			style.textContent = `
+				.cm-line .long-sentence-highlight {
+					background-color: ${this.settings.highlightColor};
+					border-radius: 2px;
+					padding: 1px 0;
+				}
+				.cm-line .long-sentence-underline {
+					text-decoration: underline;
+					text-decoration-color: ${this.settings.highlightColor};
+					text-decoration-thickness: 2px;
+					text-underline-offset: 2px;
+				}
+			`;
+			document.head.appendChild(style);
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error applying CSS:', error);
+		}
 	}
 
 	clearHighlights() {
-		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeView) return;
+		try {
+			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (!activeView) return;
 
-		const cm6Editor: EditorView = (activeView.editor as any).cm as EditorView;
-		if (!cm6Editor) return;
+			const cm6Editor: EditorView = (activeView.editor as any).cm as EditorView;
+			if (!cm6Editor) return;
 
-		cm6Editor.dispatch({
-			effects: [clearHighlightsEffect.of(null)]
-		});
+			cm6Editor.dispatch({
+				effects: [clearHighlightsEffect.of(null)]
+			});
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error clearing highlights:', error);
+		}
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		try {
+			this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error loading settings:', error);
+			this.settings = DEFAULT_SETTINGS;
+		}
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		try {
+			await this.saveData(this.settings);
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error saving settings:', error);
+		}
 	}
 }
 
