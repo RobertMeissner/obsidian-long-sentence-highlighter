@@ -7,15 +7,17 @@ interface LongSentenceHighlighterSettings {
 	maxWords: number;
 	highlightColor: string;
 	enabled: boolean;
+	highlightStyle: 'background' | 'underline';
 }
 
 const DEFAULT_SETTINGS: LongSentenceHighlighterSettings = {
 	maxWords: 20,
 	highlightColor: '#ffeb3b',
-	enabled: true
+	enabled: true,
+	highlightStyle: 'background'
 }
 
-const addHighlightEffect = StateEffect.define<{from: number, to: number}>();
+const addHighlightEffect = StateEffect.define<{from: number, to: number, style: 'background' | 'underline'}>();
 const clearHighlightsEffect = StateEffect.define();
 
 const highlightField = StateField.define<DecorationSet>({
@@ -26,8 +28,9 @@ const highlightField = StateField.define<DecorationSet>({
 		highlights = highlights.map(tr.changes);
 		for (let e of tr.effects) {
 			if (e.is(addHighlightEffect)) {
+				const mark = e.value.style === 'underline' ? underlineMark : highlightMark;
 				highlights = highlights.update({
-					add: [highlightMark.range(e.value.from, e.value.to)]
+					add: [mark.range(e.value.from, e.value.to)]
 				});
 			} else if (e.is(clearHighlightsEffect)) {
 				highlights = Decoration.none;
@@ -40,6 +43,10 @@ const highlightField = StateField.define<DecorationSet>({
 
 const highlightMark = Decoration.mark({
 	class: "long-sentence-highlight"
+});
+
+const underlineMark = Decoration.mark({
+	class: "long-sentence-underline"
 });
 
 export default class LongSentenceHighlighterPlugin extends Plugin {
@@ -143,7 +150,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			if (startIndex !== -1) {
 				const from = startIndex;
 				const to = from + sentence.length;
-				effects.push(addHighlightEffect.of({from, to}));
+				effects.push(addHighlightEffect.of({from, to, style: this.settings.highlightStyle}));
 				startIndex = to;
 			} else {
 				console.log(`Could not find sentence: ${sentence}`);
@@ -167,6 +174,12 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		style.textContent = `
 			.cm-line .long-sentence-highlight {
 				background-color: ${this.settings.highlightColor};
+			}
+			.cm-line .long-sentence-underline {
+				text-decoration: underline;
+				text-decoration-color: ${this.settings.highlightColor};
+				text-decoration-thickness: 2px;
+				text-underline-offset: 2px;
 			}
 		`;
 		document.head.append(style);
@@ -220,6 +233,21 @@ class LongSentenceHighlighterSettingTab extends PluginSettingTab {
 						if (this.plugin.settings.enabled) {
 							this.plugin.highlightLongSentences();
 						}
+					}
+				}));
+
+		new Setting(containerEl)
+			.setName('Highlight style')
+			.setDesc('Choose how to highlight long sentences')
+			.addDropdown(dropdown => dropdown
+				.addOption('background', 'Background highlight')
+				.addOption('underline', 'Underline')
+				.setValue(this.plugin.settings.highlightStyle)
+				.onChange(async (value: 'background' | 'underline') => {
+					this.plugin.settings.highlightStyle = value;
+					await this.plugin.saveSettings();
+					if (this.plugin.settings.enabled) {
+						this.plugin.highlightLongSentences();
 					}
 				}));
 
