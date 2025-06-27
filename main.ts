@@ -53,6 +53,23 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 	settings: LongSentenceHighlighterSettings;
 	themeObserver: MutationObserver;
 
+	private getCodeMirrorEditor(view: MarkdownView): EditorView | null {
+		try {
+			// Type-safe access to CodeMirror editor
+			const editor = view.editor as unknown;
+			if (editor && typeof editor === 'object' && 'cm' in editor) {
+				const cm = (editor as { cm: unknown }).cm;
+				if (cm instanceof EditorView) {
+					return cm;
+				}
+			}
+			return null;
+		} catch (error) {
+			console.warn('Long Sentence Highlighter: Could not access CodeMirror editor:', error);
+			return null;
+		}
+	}
+
 	async onload() {
 		await this.loadSettings();
 
@@ -177,7 +194,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 	async highlightView(view: MarkdownView) {
 		try {
-			const cm6Editor: EditorView = (view.editor as any).cm as EditorView;
+			const cm6Editor = this.getCodeMirrorEditor(view);
 
 			if (!cm6Editor) {
 				console.warn('Long Sentence Highlighter: Failed to access CodeMirror editor');
@@ -199,12 +216,12 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			}
 
 			if (!cm6Editor) {
-				cm6Editor = (activeView.editor as any).cm as EditorView;
-			}
-
-			if (!cm6Editor) {
-				console.warn('Long Sentence Highlighter: Could not access CodeMirror editor');
-				return;
+				const editor = this.getCodeMirrorEditor(activeView);
+				if (!editor) {
+					console.warn('Long Sentence Highlighter: Could not access CodeMirror editor');
+					return;
+				}
+				cm6Editor = editor;
 			}
 
 			this.applyCustomCSS();
@@ -212,7 +229,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			const content = cm6Editor.state.doc.toString();
 			const sentences = this.getLongSentences(content);
 
-			const effects: StateEffect<any>[] = [clearHighlightsEffect.of(null)];
+			const effects: StateEffect<unknown>[] = [clearHighlightsEffect.of(null)];
 
 			let startIndex = 0;
 			for (const sentence of sentences) {
@@ -239,8 +256,51 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 				return [];
 			}
 
-			const sentenceDelimiterRegex = /(?<=[.!?])\s+|(?=\n\n)|(?=\n\s*\n)|(?<!\n)\n(?!\n)/;
-			const sentences = content.split(sentenceDelimiterRegex);
+			// Split on sentence endings and paragraph breaks without using lookbehinds
+			const sentences: string[] = [];
+			let currentSentence = '';
+			let i = 0;
+			
+			while (i < content.length) {
+				const char = content[i];
+				currentSentence += char;
+				
+				// Check for sentence endings
+				if (char === '.' || char === '!' || char === '?') {
+					// Look ahead for whitespace
+					if (i + 1 < content.length && /\s/.test(content[i + 1])) {
+						sentences.push(currentSentence.trim());
+						currentSentence = '';
+						// Skip the whitespace
+						while (i + 1 < content.length && /\s/.test(content[i + 1])) {
+							i++;
+						}
+					}
+				}
+				// Check for paragraph breaks
+				else if (char === '\n') {
+					if (i + 1 < content.length && content[i + 1] === '\n') {
+						// Double newline - paragraph break
+						sentences.push(currentSentence.trim());
+						currentSentence = '';
+						i++; // Skip the second newline
+					} else if (i + 1 < content.length && /\s/.test(content[i + 1]) && i + 2 < content.length && content[i + 2] === '\n') {
+						// Newline + whitespace + newline
+						sentences.push(currentSentence.trim());
+						currentSentence = '';
+						// Skip whitespace and second newline
+						while (i + 1 < content.length && /\s/.test(content[i + 1])) {
+							i++;
+						}
+					}
+				}
+				i++;
+			}
+			
+			// Add remaining content as last sentence
+			if (currentSentence.trim().length > 0) {
+				sentences.push(currentSentence.trim());
+			}
 
 			return sentences.filter((sentence) => {
 				const trimmed = sentence.trim();
@@ -330,7 +390,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 			if (!activeView) return;
 
-			const cm6Editor: EditorView = (activeView.editor as any).cm as EditorView;
+			const cm6Editor = this.getCodeMirrorEditor(activeView);
 			if (!cm6Editor) return;
 
 			cm6Editor.dispatch({
