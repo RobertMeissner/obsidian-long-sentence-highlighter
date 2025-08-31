@@ -77,17 +77,17 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'toggle-long-sentence-highlighting',
-			name: 'Toggle long sentence highlighting',
+			name: 'Toggle',
 			callback: () => {
 				try {
 					this.settings.enabled = !this.settings.enabled;
 					this.saveSettings();
 					if (this.settings.enabled) {
 						this.highlightLongSentences();
-						new Notice('Long sentence highlighting enabled');
+						new Notice('Highlighting enabled');
 					} else {
 						this.clearHighlights();
-						new Notice('Long sentence highlighting disabled');
+						new Notice('Highlighting disabled');
 					}
 				} catch (error) {
 					console.error('Long Sentence Highlighter: Error toggling highlighting:', error);
@@ -111,7 +111,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'clear-sentence-highlights',
-			name: 'Clear sentence highlights',
+			name: 'Clear highlights',
 			callback: () => {
 				try {
 					this.clearHighlights();
