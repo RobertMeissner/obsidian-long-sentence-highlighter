@@ -2,7 +2,7 @@
 
 An Obsidian plugin that helps improve writing clarity by highlighting sentences that exceed a configurable word count threshold.
 
-Mainly used by me, to keep sentences short in my novel.
+Mainly used by me to have brief sentences in my novel.
 
 ## Features
 
