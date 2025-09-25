@@ -38,6 +38,9 @@ jobs:
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v1
               with:
+                  name: ${{ github.ref_name | sed 's/^v//' }}
+                  tag_name: ${{ github.ref_name }}
+
                   files: |
                       obsidian-long-sentence-highlighter.zip
                       dist/main.js
