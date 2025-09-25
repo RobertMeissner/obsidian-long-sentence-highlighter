@@ -8,5 +8,6 @@ module.exports = {
 	collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],
 	moduleNameMapper: {
 		'^obsidian$': '<rootDir>/__mocks__/obsidian.ts',
+		'^../main$': '<rootDir>/src/main.ts',
 	},
 };

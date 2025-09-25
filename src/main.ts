@@ -234,74 +234,40 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		}
 	}
 
+	protected isValidContent(content: string): boolean {
+		return !!content?.trim();
+	}
+
+	private wordCount(sentence: string): number {
+		return sentence
+			.trim()
+			.split(/\s+/)
+			.filter(word => word.length > 0).length;
+	}
+
+	private splitIntoSentences(content: string): string[] {
+		const sentencePattern = /([.!?])\s+/g;
+		const paragraphBreaks = /\n\s*\n+/g;
+		return content
+			.replace(sentencePattern, '$1\n')
+			.replace(paragraphBreaks, '\n')
+			.split('\n')
+			.filter(sentence => sentence.trim().length > 0)
+			.map(sentence => sentence.trim());
+	}
+
 	getLongSentences(content: string): string[] {
+		let sentences: string[] = [];
 		try {
-			if (!content || content.trim().length === 0) {
-				return [];
+			if (this.isValidContent(content)) {
+				sentences = this.splitIntoSentences(content).filter(
+					sentence => this.wordCount(sentence) > this.settings.maxWords
+				);
 			}
-
-			// Split on sentence endings and paragraph breaks without using lookbehinds
-			const sentences: string[] = [];
-			let currentSentence = '';
-			let i = 0;
-
-			while (i < content.length) {
-				const char = content[i];
-				currentSentence += char;
-
-				// Check for sentence endings
-				if (char === '.' || char === '!' || char === '?') {
-					// Look ahead for whitespace
-					if (i + 1 < content.length && /\s/.test(content[i + 1])) {
-						sentences.push(currentSentence.trim());
-						currentSentence = '';
-						// Skip the whitespace
-						while (i + 1 < content.length && /\s/.test(content[i + 1])) {
-							i++;
-						}
-					}
-				}
-				// Check for paragraph breaks
-				else if (char === '\n') {
-					if (i + 1 < content.length && content[i + 1] === '\n') {
-						// Double newline - paragraph break
-						sentences.push(currentSentence.trim());
-						currentSentence = '';
-						i++; // Skip the second newline
-					} else if (
-						i + 1 < content.length &&
-						/\s/.test(content[i + 1]) &&
-						i + 2 < content.length &&
-						content[i + 2] === '\n'
-					) {
-						// Newline + whitespace + newline
-						sentences.push(currentSentence.trim());
-						currentSentence = '';
-						// Skip whitespace and second newline
-						while (i + 1 < content.length && /\s/.test(content[i + 1])) {
-							i++;
-						}
-					}
-				}
-				i++;
-			}
-
-			// Add remaining content as last sentence
-			if (currentSentence.trim().length > 0) {
-				sentences.push(currentSentence.trim());
-			}
-
-			return sentences.filter(sentence => {
-				const trimmed = sentence.trim();
-				if (trimmed.length === 0) return false;
-
-				const wordCount = trimmed.split(/\s+/).filter(word => word.length > 0).length;
-				return wordCount > this.settings.maxWords;
-			});
 		} catch (error) {
 			console.error('Long Sentence Highlighter: Error in getLongSentences:', error);
-			return [];
 		}
+		return sentences;
 	}
 
 	applyCustomCSS() {
