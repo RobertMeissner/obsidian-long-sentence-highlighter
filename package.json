@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-long-sentence-highlighter",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Obsidian plugin that highlights sentences exceeding a configurable word count threshold to improve writing clarity",
 	"scripts": {
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run copy-assets",
