@@ -1,5 +1,11 @@
 # Long Sentence Highlighter
 
+[![CI](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/actions/workflows/ci.yml/badge.svg)](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/actions/workflows/ci.yml)
+[![Release](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/actions/workflows/release.yml/badge.svg)](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/github/v/release/RobertMeissner/obsidian-long-sentence-highlighter)](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/releases)
+[![Downloads](https://img.shields.io/github/downloads/RobertMeissner/obsidian-long-sentence-highlighter/total)](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/releases)
+
 An Obsidian plugin that helps improve writing clarity by highlighting sentences that exceed a configurable word count threshold.
 
 Mainly used by me to have brief sentences in my novel.
@@ -50,7 +56,7 @@ Access plugin settings via Settings > Community Plugins > Long Sentence Highligh
 
 ## How It Works
 
-The plugin analyzes text content and identifies sentences that exceed your configured word threshold. It uses CodeMirror 6's decoration system for reliable highlighting that doesn't interfere with editing.
+The plugin analyzes text content and identifies sentences that exceed your configured word threshold. It uses CodeMirror 6's decoration system for reliable highlighting that does not interfere with editing.
 
 **Sentence detection**: The plugin splits text using common sentence delimiters (periods, exclamation marks, question marks) while handling paragraph breaks appropriately.
 
@@ -67,9 +73,10 @@ Long sentences can make text harder to read and understand. This plugin helps yo
 
 ## Compatibility
 
-- **Minimum Obsidian version**: 1.8.10
+- **Minimum Obsidian version**: 0.15.0.
   - Probably works for older versions, too, but have not tested it.
-- **Platforms**: Desktop and mobile
+- **Platforms**: Desktop only. Mobile not tested
+- **OS**: Linux only. Windows, macOS, … not tested
 - **Modes**: Works in both editing and reading modes
 
 ## Development
@@ -95,7 +102,7 @@ npm run build
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our development process, coding standards, and how to submit pull requests.
 
 ## License
 
@@ -110,10 +117,4 @@ If you find this plugin helpful, consider:
 
 ## Changelog
 
-### 1.0.0
-- Initial release
-- Basic sentence highlighting functionality
-- Configurable word threshold
-- Background and underline highlighting styles
-- Color customization
-- Toggle commands
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes and version history.

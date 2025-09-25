@@ -26,7 +26,7 @@ const highlightField = StateField.define<DecorationSet>({
 	},
 	update(highlights, tr) {
 		highlights = highlights.map(tr.changes);
-		for (let e of tr.effects) {
+		for (const e of tr.effects) {
 			if (e.is(addHighlightEffect)) {
 				const mark = e.value.style === 'underline' ? underlineMark : highlightMark;
 				highlights = highlights.update({
@@ -331,7 +331,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 			// Adjust colors for dark mode
 			let backgroundHighlightColor = this.settings.highlightColor;
-			let underlineColor = this.settings.highlightColor;
+			const underlineColor = this.settings.highlightColor;
 
 			if (isDarkMode) {
 				// Convert hex color to rgba with reduced opacity for dark mode
