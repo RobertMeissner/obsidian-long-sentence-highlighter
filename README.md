@@ -15,8 +15,8 @@ Mainly used by me to have brief sentences in my novel.
 - **Automatic highlighting** of long sentences in both editing and reading modes
 - **Configurable word threshold** - set your preferred maximum sentence length
 - **Two highlighting styles**:
-  - Background highlighting with customizable color
-  - Underline highlighting with customizable color
+    - Background highlighting with customizable color
+    - Underline highlighting with customizable color
 - **Toggle functionality** - easily enable/disable highlighting
 - **Real-time updates** - highlights update as you type and navigate between notes
 
@@ -74,7 +74,7 @@ Long sentences can make text harder to read and understand. This plugin helps yo
 ## Compatibility
 
 - **Minimum Obsidian version**: 0.15.0.
-  - Probably works for older versions, too, but have not tested it.
+    - Probably works for older versions, too, but have not tested it.
 - **Platforms**: Desktop only. Mobile not tested
 - **OS**: Linux only. Windows, macOS, … not tested
 - **Modes**: Works in both editing and reading modes
@@ -111,6 +111,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 If you find this plugin helpful, consider:
+
 - Starring the repository
 - Reporting issues or suggesting improvements
 - Contributing to the codebase

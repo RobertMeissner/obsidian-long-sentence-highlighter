@@ -1,15 +1,15 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    reviewers:
-      - "RobertMeissner"
-    commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
+    - package-ecosystem: 'npm'
+      directory: '/'
+      schedule:
+          interval: 'monthly'
+          day: 'monday'
+          time: '09:00'
+      open-pull-requests-limit: 10
+      reviewers:
+          - 'RobertMeissner'
+      commit-message:
+          prefix: 'chore'
+          prefix-development: 'chore'
+          include: 'scope'

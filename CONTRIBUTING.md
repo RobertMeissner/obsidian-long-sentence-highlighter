@@ -14,20 +14,22 @@ Thank you for your interest in contributing to the Long Sentence Highlighter plu
 
 1. Fork the repository on GitHub
 2. Clone your fork locally:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/obsidian-long-sentence-highlighter.git
-   cd obsidian-long-sentence-highlighter
-   ```
+
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/obsidian-long-sentence-highlighter.git
+    cd obsidian-long-sentence-highlighter
+    ```
 
 3. Install dependencies:
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 4. Start development:
-   ```bash
-   npm run dev
-   ```
+    ```bash
+    npm run dev
+    ```
 
 ### Project Structure
 
@@ -51,6 +53,7 @@ Thank you for your interest in contributing to the Long Sentence Highlighter plu
 ## Code Style
 
 This project uses:
+
 - **Prettier** for code formatting
 - **ESLint** with TypeScript rules for code quality
 - **Tabs** for indentation (4 spaces width)
@@ -106,30 +109,32 @@ git commit -m "docs: update installation instructions"
 ## Pull Request Process
 
 1. **Create a feature branch** from `master`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
 
 2. **Make your changes** following the code style guidelines
 
 3. **Add tests** for new functionality
 
 4. **Run the test suite**:
-   ```bash
-   npm test
-   npm run lint
-   npm run format:check
-   npm run build
-   ```
+
+    ```bash
+    npm test
+    npm run lint
+    npm run format:check
+    npm run build
+    ```
 
 5. **Commit your changes** using conventional commit format
 
 6. **Push to your fork** and create a pull request
 
 7. **Fill out the PR template** with:
-   - Clear description of changes
-   - Screenshots/GIFs if UI changes
-   - Link to any related issues
+    - Clear description of changes
+    - Screenshots/GIFs if UI changes
+    - Link to any related issues
 
 ## Reporting Issues
 
@@ -158,9 +163,9 @@ For feature requests:
 
 1. Build the plugin: `npm run build`
 2. Copy the built files to your Obsidian vault's plugins folder:
-   ```
-   .obsidian/plugins/long-sentence-highlighter/
-   ```
+    ```
+    .obsidian/plugins/long-sentence-highlighter/
+    ```
 3. Restart Obsidian or reload the plugin
 4. Test your changes in a real Obsidian environment
 

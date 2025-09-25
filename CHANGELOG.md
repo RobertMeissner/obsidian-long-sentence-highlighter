@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## [Unreleased]
 
 ### Added
@@ -32,9 +31,9 @@
 - Customizable highlight colors with dark mode support
 - Toggle functionality to enable/disable highlighting
 - Command palette integration with three commands:
-  - Toggle long sentence highlighting
-  - Highlight long sentences in current note
-  - Clear sentence highlights
+    - Toggle long sentence highlighting
+    - Highlight long sentences in current note
+    - Clear sentence highlights
 - Sentence detection using periods, exclamation marks, and question marks
 - Paragraph break handling
 - Theme-aware color adjustments
@@ -46,11 +45,9 @@
 - MIT license
 - Minimum Obsidian version: 0.15.0
 
-
 ## alpha - 2024-09-25
 
 - Simple sentence highlighting
-
 
 ## General
 

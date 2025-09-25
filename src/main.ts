@@ -1,7 +1,7 @@
-import { App, MarkdownView, Plugin, PluginSettingTab, Setting, Notice } from 'obsidian';
-import { EditorView } from '@codemirror/view';
-import { StateEffect, StateField } from '@codemirror/state';
-import { Decoration, DecorationSet } from '@codemirror/view';
+import {App, MarkdownView, Plugin, PluginSettingTab, Setting, Notice} from 'obsidian';
+import {EditorView} from '@codemirror/view';
+import {StateEffect, StateField} from '@codemirror/state';
+import {Decoration, DecorationSet} from '@codemirror/view';
 
 interface LongSentenceHighlighterSettings {
 	maxWords: number;
@@ -14,10 +14,10 @@ const DEFAULT_SETTINGS: LongSentenceHighlighterSettings = {
 	maxWords: 20,
 	highlightColor: '#ffeb3b',
 	enabled: true,
-	highlightStyle: 'background'
-}
+	highlightStyle: 'background',
+};
 
-const addHighlightEffect = StateEffect.define<{from: number, to: number, style: 'background' | 'underline'}>();
+const addHighlightEffect = StateEffect.define<{from: number; to: number; style: 'background' | 'underline'}>();
 const clearHighlightsEffect = StateEffect.define();
 
 const highlightField = StateField.define<DecorationSet>({
@@ -30,7 +30,7 @@ const highlightField = StateField.define<DecorationSet>({
 			if (e.is(addHighlightEffect)) {
 				const mark = e.value.style === 'underline' ? underlineMark : highlightMark;
 				highlights = highlights.update({
-					add: [mark.range(e.value.from, e.value.to)]
+					add: [mark.range(e.value.from, e.value.to)],
 				});
 			} else if (e.is(clearHighlightsEffect)) {
 				highlights = Decoration.none;
@@ -38,15 +38,15 @@ const highlightField = StateField.define<DecorationSet>({
 		}
 		return highlights;
 	},
-	provide: f => EditorView.decorations.from(f)
+	provide: f => EditorView.decorations.from(f),
 });
 
 const highlightMark = Decoration.mark({
-	class: "long-sentence-highlight"
+	class: 'long-sentence-highlight',
 });
 
 const underlineMark = Decoration.mark({
-	class: "long-sentence-underline"
+	class: 'long-sentence-underline',
 });
 
 export default class LongSentenceHighlighterPlugin extends Plugin {
@@ -58,7 +58,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			// Type-safe access to CodeMirror editor
 			const editor = view.editor as unknown;
 			if (editor && typeof editor === 'object' && 'cm' in editor) {
-				const cm = (editor as { cm: unknown }).cm;
+				const cm = (editor as {cm: unknown}).cm;
 				if (cm instanceof EditorView) {
 					return cm;
 				}
@@ -93,7 +93,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 					console.error('Long Sentence Highlighter: Error toggling highlighting:', error);
 					new Notice('Error toggling highlighting');
 				}
-			}
+			},
 		});
 
 		this.addCommand({
@@ -106,7 +106,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 					console.error('Long Sentence Highlighter: Error highlighting sentences:', error);
 					new Notice('Error highlighting sentences');
 				}
-			}
+			},
 		});
 
 		this.addCommand({
@@ -119,7 +119,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 					console.error('Long Sentence Highlighter: Error clearing highlights:', error);
 					new Notice('Error clearing highlights');
 				}
-			}
+			},
 		});
 
 		this.addSettingTab(new LongSentenceHighlighterSettingTab(this.app, this));
@@ -155,7 +155,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 	onunload() {
 		try {
 			this.clearHighlights();
-			
+
 			// Remove custom CSS
 			const existingStyle = document.getElementById('long-sentence-highlighter-styles');
 			if (existingStyle) {
@@ -173,8 +173,8 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 	setupThemeObserver() {
 		// Observe changes to the body class list to detect theme changes
-		this.themeObserver = new MutationObserver((mutations) => {
-			mutations.forEach((mutation) => {
+		this.themeObserver = new MutationObserver(mutations => {
+			mutations.forEach(mutation => {
 				if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
 					if (this.settings.enabled) {
 						setTimeout(() => {
@@ -188,24 +188,8 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 
 		this.themeObserver.observe(document.body, {
 			attributes: true,
-			attributeFilter: ['class']
+			attributeFilter: ['class'],
 		});
-	}
-
-	async highlightView(view: MarkdownView) {
-		try {
-			const cm6Editor = this.getCodeMirrorEditor(view);
-
-			if (!cm6Editor) {
-				console.warn('Long Sentence Highlighter: Failed to access CodeMirror editor');
-				return;
-			}
-
-			this.applyCustomCSS();
-			this.highlightLongSentences(cm6Editor);
-		} catch (error) {
-			console.error('Long Sentence Highlighter: Error in highlightView:', error);
-		}
 	}
 
 	highlightLongSentences(cm6Editor?: EditorView) {
@@ -260,11 +244,11 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			const sentences: string[] = [];
 			let currentSentence = '';
 			let i = 0;
-			
+
 			while (i < content.length) {
 				const char = content[i];
 				currentSentence += char;
-				
+
 				// Check for sentence endings
 				if (char === '.' || char === '!' || char === '?') {
 					// Look ahead for whitespace
@@ -284,7 +268,12 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 						sentences.push(currentSentence.trim());
 						currentSentence = '';
 						i++; // Skip the second newline
-					} else if (i + 1 < content.length && /\s/.test(content[i + 1]) && i + 2 < content.length && content[i + 2] === '\n') {
+					} else if (
+						i + 1 < content.length &&
+						/\s/.test(content[i + 1]) &&
+						i + 2 < content.length &&
+						content[i + 2] === '\n'
+					) {
 						// Newline + whitespace + newline
 						sentences.push(currentSentence.trim());
 						currentSentence = '';
@@ -296,16 +285,16 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 				}
 				i++;
 			}
-			
+
 			// Add remaining content as last sentence
 			if (currentSentence.trim().length > 0) {
 				sentences.push(currentSentence.trim());
 			}
 
-			return sentences.filter((sentence) => {
+			return sentences.filter(sentence => {
 				const trimmed = sentence.trim();
 				if (trimmed.length === 0) return false;
-				
+
 				const wordCount = trimmed.split(/\s+/).filter(word => word.length > 0).length;
 				return wordCount > this.settings.maxWords;
 			});
@@ -394,7 +383,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			if (!cm6Editor) return;
 
 			cm6Editor.dispatch({
-				effects: [clearHighlightsEffect.of(null)]
+				effects: [clearHighlightsEffect.of(null)],
 			});
 		} catch (error) {
 			console.error('Long Sentence Highlighter: Error clearing highlights:', error);
@@ -435,54 +424,57 @@ class LongSentenceHighlighterSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Word threshold')
 			.setDesc('Highlight sentences with this many words or more')
-			.addText(text => text
-				.setPlaceholder('20')
-				.setValue(this.plugin.settings.maxWords.toString())
-				.onChange(async (value) => {
-					const threshold = parseInt(value);
-					if (!isNaN(threshold) && threshold > 0) {
-						this.plugin.settings.maxWords = threshold;
-						await this.plugin.saveSettings();
-						if (this.plugin.settings.enabled) {
-							this.plugin.highlightLongSentences();
+			.addText(text =>
+				text
+					.setPlaceholder('20')
+					.setValue(this.plugin.settings.maxWords.toString())
+					.onChange(async value => {
+						const threshold = parseInt(value);
+						if (!isNaN(threshold) && threshold > 0) {
+							this.plugin.settings.maxWords = threshold;
+							await this.plugin.saveSettings();
+							if (this.plugin.settings.enabled) {
+								this.plugin.highlightLongSentences();
+							}
 						}
-					}
-				}));
+					})
+			);
 
 		new Setting(containerEl)
 			.setName('Highlight style')
 			.setDesc('Choose how to highlight long sentences')
-			.addDropdown(dropdown => dropdown
-				.addOption('background', 'Background highlight')
-				.addOption('underline', 'Underline')
-				.setValue(this.plugin.settings.highlightStyle)
-				.onChange(async (value: 'background' | 'underline') => {
-					this.plugin.settings.highlightStyle = value;
-					await this.plugin.saveSettings();
-					if (this.plugin.settings.enabled) {
-						this.plugin.highlightLongSentences();
-					}
-				}));
+			.addDropdown(dropdown =>
+				dropdown
+					.addOption('background', 'Background highlight')
+					.addOption('underline', 'Underline')
+					.setValue(this.plugin.settings.highlightStyle)
+					.onChange(async (value: 'background' | 'underline') => {
+						this.plugin.settings.highlightStyle = value;
+						await this.plugin.saveSettings();
+						if (this.plugin.settings.enabled) {
+							this.plugin.highlightLongSentences();
+						}
+					})
+			);
 
 		new Setting(containerEl)
 			.setName('Highlight color')
 			.setDesc('Color used to highlight long sentences')
-			.addColorPicker(colorPicker => colorPicker
-				.setValue(this.plugin.settings.highlightColor)
-				.onChange(async (value) => {
+			.addColorPicker(colorPicker =>
+				colorPicker.setValue(this.plugin.settings.highlightColor).onChange(async value => {
 					this.plugin.settings.highlightColor = value;
 					await this.plugin.saveSettings();
 					if (this.plugin.settings.enabled) {
 						this.plugin.highlightLongSentences();
 					}
-				}));
+				})
+			);
 
 		new Setting(containerEl)
 			.setName('Enable highlighting')
 			.setDesc('Automatically highlight long sentences')
-			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings.enabled)
-				.onChange(async (value) => {
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.enabled).onChange(async value => {
 					this.plugin.settings.enabled = value;
 					await this.plugin.saveSettings();
 					if (value) {
@@ -490,6 +482,7 @@ class LongSentenceHighlighterSettingTab extends PluginSettingTab {
 					} else {
 						this.plugin.clearHighlights();
 					}
-				}));
+				})
+			);
 	}
 }
