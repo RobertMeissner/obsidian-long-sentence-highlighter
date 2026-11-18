@@ -55,8 +55,8 @@ export class LongSentenceHighlighterSettingTab extends PluginSettingTab {
 					.addOption('background', 'Background highlight')
 					.addOption('underline', 'Underline')
 					.setValue(this.plugin.settings.highlightStyle)
-					.onChange(async (value: 'background' | 'underline') => {
-						this.plugin.settings.highlightStyle = value;
+					.onChange(async value => {
+						this.plugin.settings.highlightStyle = value as 'background' | 'underline';
 						await this.plugin.saveSettings();
 						if (this.plugin.settings.enabled) {
 							this.plugin.highlightLongSentences();
