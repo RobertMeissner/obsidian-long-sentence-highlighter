@@ -31,8 +31,8 @@ Mainly used by me to have brief sentences in my novel.
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/releases)
-2. Extract the files to your vault's `.obsidian/plugins/long-sentence-highlighter/` directory
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [releases page](https://github.com/RobertMeissner/obsidian-long-sentence-highlighter/releases)
+2. Copy the files to your vault's `.obsidian/plugins/long-sentence-highlighter/` directory
 3. Reload Obsidian and enable the plugin in Settings > Community Plugins
 
 ## Usage
@@ -73,8 +73,7 @@ Long sentences can make text harder to read and understand. This plugin helps yo
 
 ## Compatibility
 
-- **Minimum Obsidian version**: 0.15.0.
-    - Probably works for older versions, too, but have not tested it.
+- **Minimum Obsidian version**: 1.8.7
 - **Platforms**: Desktop only. Mobile not tested
 - **OS**: Linux only. Windows, macOS, … not tested
 - **Modes**: Works in both editing and reading modes

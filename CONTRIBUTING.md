@@ -6,7 +6,7 @@ Thank you for your interest in contributing to the Long Sentence Highlighter plu
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 22 or higher
 - npm
 - Git
 
