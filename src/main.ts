@@ -49,6 +49,13 @@ const underlineMark = Decoration.mark({
 	class: 'long-sentence-underline',
 });
 
+const hexToRgba = (hex: string, alpha: number): string => {
+	const r = parseInt(hex.slice(1, 3), 16);
+	const g = parseInt(hex.slice(3, 5), 16);
+	const b = parseInt(hex.slice(5, 7), 16);
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export default class LongSentenceHighlighterPlugin extends Plugin {
 	settings: LongSentenceHighlighterSettings;
 	themeObserver: MutationObserver;
@@ -78,10 +85,10 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.addCommand({
 			id: 'toggle-long-sentence-highlighting',
 			name: 'Toggle',
-			callback: () => {
+			callback: async () => {
 				try {
 					this.settings.enabled = !this.settings.enabled;
-					this.saveSettings();
+					await this.saveSettings();
 					if (this.settings.enabled) {
 						this.highlightLongSentences();
 						new Notice('Highlighting enabled');
@@ -127,7 +134,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', () => {
 				if (this.settings.enabled) {
-					setTimeout(() => this.highlightLongSentences(), 500);
+					activeWindow.setTimeout(() => this.highlightLongSentences(), 500);
 				}
 			})
 		);
@@ -136,10 +143,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('css-change', () => {
 				if (this.settings.enabled) {
-					setTimeout(() => {
-						this.applyCustomCSS();
-						this.highlightLongSentences();
-					}, 100);
+					activeWindow.setTimeout(() => this.highlightLongSentences(), 100);
 				}
 			})
 		);
@@ -148,19 +152,14 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.setupThemeObserver();
 
 		if (this.settings.enabled) {
-			setTimeout(() => this.highlightLongSentences(), 1000);
+			activeWindow.setTimeout(() => this.highlightLongSentences(), 1000);
 		}
 	}
 
 	onunload() {
 		try {
 			this.clearHighlights();
-
-			// Remove custom CSS
-			const existingStyle = document.getElementById('long-sentence-highlighter-styles');
-			if (existingStyle) {
-				existingStyle.remove();
-			}
+			this.removeHighlightColors();
 
 			// Disconnect theme observer
 			if (this.themeObserver) {
@@ -177,16 +176,13 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			mutations.forEach(mutation => {
 				if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
 					if (this.settings.enabled) {
-						setTimeout(() => {
-							this.applyCustomCSS();
-							this.highlightLongSentences();
-						}, 50);
+						activeWindow.setTimeout(() => this.highlightLongSentences(), 50);
 					}
 				}
 			});
 		});
 
-		this.themeObserver.observe(document.body, {
+		this.themeObserver.observe(activeDocument.body, {
 			attributes: true,
 			attributeFilter: ['class'],
 		});
@@ -208,7 +204,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 				cm6Editor = editor;
 			}
 
-			this.applyCustomCSS();
+			this.applyHighlightColors();
 
 			const content = cm6Editor.state.doc.toString();
 			const sentences = this.getLongSentences(content);
@@ -270,73 +266,30 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		return sentences;
 	}
 
-	applyCustomCSS() {
+	applyHighlightColors() {
 		try {
-			// Remove existing style if it exists
-			const existingStyle = document.getElementById('long-sentence-highlighter-styles');
-			if (existingStyle) {
-				existingStyle.remove();
-			}
-
-			const style = document.createElement('style');
-			style.id = 'long-sentence-highlighter-styles';
-
-			// Detect if we're in dark mode
-			const isDarkMode = document.body.classList.contains('theme-dark');
-
-			// Adjust colors for dark mode
-			let backgroundHighlightColor = this.settings.highlightColor;
-			const underlineColor = this.settings.highlightColor;
-
-			if (isDarkMode) {
-				// Convert hex color to rgba with reduced opacity for dark mode
-				const hexToRgba = (hex: string, alpha: number) => {
-					const r = parseInt(hex.slice(1, 3), 16);
-					const g = parseInt(hex.slice(3, 5), 16);
-					const b = parseInt(hex.slice(5, 7), 16);
-					return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-				};
-
-				// Use lower opacity for background in dark mode
-				if (this.settings.highlightColor.startsWith('#')) {
-					backgroundHighlightColor = hexToRgba(this.settings.highlightColor, 0.3);
-				} else {
-					// If it's already rgba or other format, use as is
-					backgroundHighlightColor = this.settings.highlightColor;
-				}
-			}
-
-			style.textContent = `
-				.cm-line .long-sentence-highlight {
-					background-color: ${backgroundHighlightColor};
-					border-radius: 2px;
-					padding: 1px 0;
-					transition: background-color 0.2s ease;
-				}
-				.cm-line .long-sentence-underline {
-					text-decoration: underline;
-					text-decoration-color: ${underlineColor};
-					text-decoration-thickness: 2px;
-					text-underline-offset: 2px;
-					transition: text-decoration-color 0.2s ease;
-				}
-				.theme-dark .cm-line .long-sentence-highlight {
-					background-color: ${backgroundHighlightColor};
-					border-radius: 2px;
-					padding: 1px 0;
-					transition: background-color 0.2s ease;
-				}
-				.theme-dark .cm-line .long-sentence-underline {
-					text-decoration: underline;
-					text-decoration-color: ${underlineColor};
-					text-decoration-thickness: 2px;
-					text-underline-offset: 2px;
-					transition: text-decoration-color 0.2s ease;
-				}
-			`;
-			document.head.appendChild(style);
+			const bodyStyle = activeDocument.body.style;
+			const color = this.settings.highlightColor;
+			// Use lower opacity for the background in dark mode
+			const darkBackgroundColor = color.startsWith('#') ? hexToRgba(color, 0.3) : color;
+			bodyStyle.setProperty('--long-sentence-highlight-color', color);
+			bodyStyle.setProperty('--long-sentence-underline-color', color);
+			bodyStyle.setProperty('--long-sentence-highlight-color-dark', darkBackgroundColor);
+			bodyStyle.setProperty('--long-sentence-underline-color-dark', color);
 		} catch (error) {
-			console.error('Long Sentence Highlighter: Error applying CSS:', error);
+			console.error('Long Sentence Highlighter: Error applying highlight colors:', error);
+		}
+	}
+
+	removeHighlightColors() {
+		try {
+			const bodyStyle = activeDocument.body.style;
+			bodyStyle.removeProperty('--long-sentence-highlight-color');
+			bodyStyle.removeProperty('--long-sentence-underline-color');
+			bodyStyle.removeProperty('--long-sentence-highlight-color-dark');
+			bodyStyle.removeProperty('--long-sentence-underline-color-dark');
+		} catch (error) {
+			console.error('Long Sentence Highlighter: Error removing highlight colors:', error);
 		}
 	}
 

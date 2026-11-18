@@ -4,9 +4,20 @@
 
 ### Added
 
+- `@codemirror/state` and `@codemirror/view` are now declared as runtime dependencies
+
 ### Changed
 
+- Raised `minAppVersion` from 0.15.0 to 1.8.7 (required by `ColorComponent` and the `activeWindow`/`activeDocument` globals); older Obsidian versions keep installing 1.0.1 via `versions.json`
+- Replaced `lint-staged` with `nano-staged` and dropped the deprecated `builtin-modules` package from the build
+- Updated dev dependencies (TypeScript 5.9, ESLint toolchain, esbuild, Jest, Prettier, commitlint) and CI/release actions to current majors with Node.js 22/24
+- Release workflow now publishes only `main.js`, `manifest.json`, and `styles.css` (no zip archive)
+
 ### Fixed
+
+- Popout window compatibility: use `activeDocument` instead of `document` and `activeWindow.setTimeout()` instead of `setTimeout()`
+- No longer creates and attaches a `<style>` element; highlight colors are applied through CSS custom properties consumed by `styles.css`
+- Awaited the settings save in the toggle command instead of leaving a floating promise
 
 ## [v1.0.1] - 2025-09-25
 
