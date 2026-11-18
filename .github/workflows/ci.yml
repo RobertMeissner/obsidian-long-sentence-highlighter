@@ -69,4 +69,7 @@ jobs:
               uses: actions/upload-artifact@v6
               with:
                   name: plugin-build
-                  path: dist/
+                  path: |
+                      main.js
+                      manifest.json
+                      styles.css

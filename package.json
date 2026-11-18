@@ -4,7 +4,7 @@
 	"description": "Obsidian plugin that highlights sentences exceeding a configurable word count threshold to improve writing clarity",
 	"scripts": {
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run copy-assets",
-		"copy-assets": "cp manifest.json dist/ && cp src/styles.css dist/",
+		"copy-assets": "cp src/styles.css styles.css",
 		"dev": "node esbuild.config.mjs",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
