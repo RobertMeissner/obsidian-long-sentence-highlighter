@@ -1,10 +1,10 @@
 {
 	"id": "long-sentence-highlighter",
 	"name": "Long sentence highlighter",
-	"version": "1.1.0",
-	"minAppVersion": "1.8.7",
+	"version": "1.1.1",
+	"minAppVersion": "1.13.0",
 	"description": "Highlights sentences that exceed a configurable word count threshold to help improve writing clarity and readability.",
-	"author": "Robert Mei\u00dfner",
+	"author": "Robert Meißner",
 	"authorUrl": "https://github.com/RobertMeissner",
 	"isDesktopOnly": false
 }

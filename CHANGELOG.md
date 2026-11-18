@@ -5,6 +5,18 @@
 ### Added
 
 - `@codemirror/state` and `@codemirror/view` are now declared as runtime dependencies
+- Settings tab now uses the declarative `getSettingDefinitions()` API (Obsidian 1.13.0+), so settings appear in Obsidian's settings search
+
+### Changed
+
+- `minAppVersion` raised to 1.13.0 (required by the declarative settings API); older installs keep 1.1.0 via `versions.json`
+- Timers now use `window.setTimeout()` instead of `activeWindow.setTimeout()`
+- Underline highlight style now uses `border-bottom` instead of partially supported `text-decoration-*` properties
+- `obsidian` API typings updated to 1.14.4
+
+### Fixed
+
+- Removed an unnecessary type assertion in the CodeMirror editor access
 
 ### Changed
 

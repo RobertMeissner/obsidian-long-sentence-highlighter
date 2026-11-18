@@ -12,17 +12,14 @@
 	background-color: var(--long-sentence-highlight-hover-color, rgba(255, 235, 59, 0.8));
 }
 
-/* Underline highlighting style */
+/* Underline highlighting style (border-based for full Obsidian support) */
 .cm-line .long-sentence-underline {
-	text-decoration: underline;
-	text-decoration-color: var(--long-sentence-underline-color, #ffeb3b);
-	text-decoration-thickness: 2px;
-	text-underline-offset: 2px;
-	transition: text-decoration-color 0.2s ease;
+	border-bottom: 2px solid var(--long-sentence-underline-color, #ffeb3b);
+	transition: border-color 0.2s ease;
 }
 
 .cm-line .long-sentence-underline:hover {
-	text-decoration-color: var(--long-sentence-underline-hover-color, #ffc107);
+	border-color: var(--long-sentence-underline-hover-color, #ffc107);
 }
 
 /* Dark theme adjustments */
@@ -35,9 +32,9 @@
 }
 
 .theme-dark .cm-line .long-sentence-underline {
-	text-decoration-color: var(--long-sentence-underline-color-dark, #ffeb3b);
+	border-color: var(--long-sentence-underline-color-dark, #ffeb3b);
 }
 
 .theme-dark .cm-line .long-sentence-underline:hover {
-	text-decoration-color: var(--long-sentence-underline-hover-color-dark, #ffc107);
+	border-color: var(--long-sentence-underline-hover-color-dark, #ffc107);
 }
