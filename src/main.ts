@@ -43,8 +43,8 @@ const hexToRgba = (hex: string, alpha: number): string => {
 };
 
 export default class LongSentenceHighlighterPlugin extends Plugin {
-	settings: LongSentenceHighlighterSettings;
-	themeObserver: MutationObserver;
+	settings!: LongSentenceHighlighterSettings;
+	themeObserver!: MutationObserver;
 
 	private getCodeMirrorEditor(view: MarkdownView): EditorView | null {
 		try {

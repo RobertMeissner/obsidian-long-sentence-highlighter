@@ -12,6 +12,5 @@ dev: ## Start development mode
 	npm run dev
 
 clean: ## Clean build files
-	rm -rf dist/
-	rm -f main.js main.js.map
+	rm -f main.js main.js.map styles.css
 	make build
