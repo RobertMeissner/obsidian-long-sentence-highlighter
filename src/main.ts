@@ -1,21 +1,7 @@
-import {App, MarkdownView, Plugin, PluginSettingTab, Setting, Notice} from 'obsidian';
-import {EditorView} from '@codemirror/view';
+import {MarkdownView, Notice, Plugin} from 'obsidian';
+import {Decoration, DecorationSet, EditorView} from '@codemirror/view';
 import {StateEffect, StateField} from '@codemirror/state';
-import {Decoration, DecorationSet} from '@codemirror/view';
-
-interface LongSentenceHighlighterSettings {
-	maxWords: number;
-	highlightColor: string;
-	enabled: boolean;
-	highlightStyle: 'background' | 'underline';
-}
-
-const DEFAULT_SETTINGS: LongSentenceHighlighterSettings = {
-	maxWords: 20,
-	highlightColor: '#ffeb3b',
-	enabled: true,
-	highlightStyle: 'background',
-};
+import {DEFAULT_SETTINGS, LongSentenceHighlighterSettings, LongSentenceHighlighterSettingTab} from './settings';
 
 const addHighlightEffect = StateEffect.define<{from: number; to: number; style: 'background' | 'underline'}>();
 const clearHighlightsEffect = StateEffect.define();
@@ -324,84 +310,5 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		} catch (error) {
 			console.error('Long Sentence Highlighter: Error saving settings:', error);
 		}
-	}
-}
-
-class LongSentenceHighlighterSettingTab extends PluginSettingTab {
-	plugin: LongSentenceHighlighterPlugin;
-
-	constructor(app: App, plugin: LongSentenceHighlighterPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Word threshold')
-			.setDesc('Highlight sentences with this many words or more')
-			.addText(text =>
-				text
-					.setPlaceholder('20')
-					.setValue(this.plugin.settings.maxWords.toString())
-					.onChange(async value => {
-						const threshold = parseInt(value);
-						if (!isNaN(threshold) && threshold > 0) {
-							this.plugin.settings.maxWords = threshold;
-							await this.plugin.saveSettings();
-							if (this.plugin.settings.enabled) {
-								this.plugin.highlightLongSentences();
-							}
-						}
-					})
-			);
-
-		new Setting(containerEl)
-			.setName('Highlight style')
-			.setDesc('Choose how to highlight long sentences')
-			.addDropdown(dropdown =>
-				dropdown
-					.addOption('background', 'Background highlight')
-					.addOption('underline', 'Underline')
-					.setValue(this.plugin.settings.highlightStyle)
-					.onChange(async (value: 'background' | 'underline') => {
-						this.plugin.settings.highlightStyle = value;
-						await this.plugin.saveSettings();
-						if (this.plugin.settings.enabled) {
-							this.plugin.highlightLongSentences();
-						}
-					})
-			);
-
-		new Setting(containerEl)
-			.setName('Highlight color')
-			.setDesc('Color used to highlight long sentences')
-			.addColorPicker(colorPicker =>
-				colorPicker.setValue(this.plugin.settings.highlightColor).onChange(async value => {
-					this.plugin.settings.highlightColor = value;
-					await this.plugin.saveSettings();
-					if (this.plugin.settings.enabled) {
-						this.plugin.highlightLongSentences();
-					}
-				})
-			);
-
-		new Setting(containerEl)
-			.setName('Enable highlighting')
-			.setDesc('Automatically highlight long sentences')
-			.addToggle(toggle =>
-				toggle.setValue(this.plugin.settings.enabled).onChange(async value => {
-					this.plugin.settings.enabled = value;
-					await this.plugin.saveSettings();
-					if (value) {
-						this.plugin.highlightLongSentences();
-					} else {
-						this.plugin.clearHighlights();
-					}
-				})
-			);
 	}
 }
