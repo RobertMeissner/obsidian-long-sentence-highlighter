@@ -49,9 +49,9 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 	private getCodeMirrorEditor(view: MarkdownView): EditorView | null {
 		try {
 			// Type-safe access to CodeMirror editor
-			const editor = view.editor as unknown;
-			if (editor && typeof editor === 'object' && 'cm' in editor) {
-				const cm = (editor as {cm: unknown}).cm;
+			const editor: unknown = view.editor;
+			if (editor !== null && typeof editor === 'object' && 'cm' in editor) {
+				const cm = editor.cm;
 				if (cm instanceof EditorView) {
 					return cm;
 				}
@@ -120,7 +120,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', () => {
 				if (this.settings.enabled) {
-					activeWindow.setTimeout(() => this.highlightLongSentences(), 500);
+					window.setTimeout(() => this.highlightLongSentences(), 500);
 				}
 			})
 		);
@@ -129,7 +129,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('css-change', () => {
 				if (this.settings.enabled) {
-					activeWindow.setTimeout(() => this.highlightLongSentences(), 100);
+					window.setTimeout(() => this.highlightLongSentences(), 100);
 				}
 			})
 		);
@@ -138,7 +138,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 		this.setupThemeObserver();
 
 		if (this.settings.enabled) {
-			activeWindow.setTimeout(() => this.highlightLongSentences(), 1000);
+			window.setTimeout(() => this.highlightLongSentences(), 1000);
 		}
 	}
 
@@ -162,7 +162,7 @@ export default class LongSentenceHighlighterPlugin extends Plugin {
 			mutations.forEach(mutation => {
 				if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
 					if (this.settings.enabled) {
-						activeWindow.setTimeout(() => this.highlightLongSentences(), 50);
+						window.setTimeout(() => this.highlightLongSentences(), 50);
 					}
 				}
 			});

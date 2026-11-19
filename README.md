@@ -73,7 +73,7 @@ Long sentences can make text harder to read and understand. This plugin helps yo
 
 ## Compatibility
 
-- **Minimum Obsidian version**: 1.8.7
+- **Minimum Obsidian version**: 1.13.0
 - **Platforms**: Desktop only. Mobile not tested
 - **OS**: Linux only. Windows, macOS, … not tested
 - **Modes**: Works in both editing and reading modes
